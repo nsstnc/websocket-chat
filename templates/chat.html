@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Чат{% endblock %}
+
+{% block content %}
+    {% if message %} {{message}} {% endif %}
+
+    <br>
+
+    <ul id="messages" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; list-style: none;"></ul>
+
+    <input type="text" id="messageInput" placeholder="Type a message..." autofocus/>
+    <button onclick="sendMessage()">Send</button>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let ws;
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('messageInput');
+
+        // Получаем идентификатор комнаты из URL
+        const urlParams = new URLSearchParams(window.location.pathname);
+        const roomID = urlParams.get('/chat/') || urlParams[0];
+
+
+        function joinRoom() {
+            messages.innerHTML = '';
+            if (ws) {
+                ws.close();
+            }
+            ws = new WebSocket(`ws://localhost:8000/ws/${roomID}`);
+
+            ws.onopen = async () => {
+                console.log(`Connected to room ${roomID}`);
+                input.focus();
+            };
+
+            ws.onmessage = function(event) {
+                const messageItem = document.createElement("li");
+                messageItem.textContent = event.data;
+                messages.appendChild(messageItem);
+                messages.scrollTop = messages.scrollHeight;
+            };
+
+            ws.onclose = function() {
+                console.log(`Disconnected from room ${roomID}`);
+            };
+        }
+
+        function sendMessage() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(input.value);
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+                event.preventDefault();
+            }
+        });
+
+        window.onload = () => {
+            joinRoom();
+            input.focus();
+        };
+    </script>
+{% endblock %}

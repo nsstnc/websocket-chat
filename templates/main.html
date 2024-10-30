@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+    {% if message %} {{message}} {% endif %}
+    <h1>Chat Room</h1>
+    <input type="text" id="roomInput" placeholder="Enter room ID" />
+    <button onclick="joinRoom()">Join Room</button>
+    <br>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function joinRoom() {
+            const roomID = document.getElementById("roomInput").value;
+            // Перенаправление на страницу чата с идентификатором комнаты
+            window.location.href = `/chat/${roomID}`;
+        }
+    </script>
+{% endblock %}
